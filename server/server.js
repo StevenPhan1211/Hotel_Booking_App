@@ -4,6 +4,7 @@ import cors from "cors"
 import connectDB from "./configs/db.js"
 import { clerkMiddleware } from "@clerk/express";
 import clerkHooks from "./controllers/clerkHooks.js";
+import userRouter from "./routes/userRoute.js";
 
 connectDB()
 
@@ -15,9 +16,14 @@ app.use(express.json())
 app.use(clerkMiddleware())
 
 // API to listen to Clerk Webhooks
-app.use("/api/clerk", clerkHooks) //chiều dậy vào fix lại cái củ chuối này! 5:57:19
+app.use("/api/clerk", clerkHooks) 
 
 app.get("/", (req, res) => res.send("API is working"))
+
+// Routes for many paths
+app.use("/api/user", userRouter)
+
+
 
 const PORT = process.env.PORT || 3000;
 
