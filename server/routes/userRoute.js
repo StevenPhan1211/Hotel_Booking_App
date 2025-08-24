@@ -5,7 +5,7 @@ import { getUserData, storeRecentSearchedCities } from "../controllers/userContr
 // Router define
 const userRouter = express.Router();
 
-userRouter.get("/", protect, getUserData) // "protect" part from auth.js 6 15 07
+userRouter.get("/", protect, getUserData) // "protect" part from auth.js
 userRouter.post("/store-recent-search", protect, storeRecentSearchedCities)
 
 

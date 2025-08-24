@@ -5,6 +5,7 @@ import connectDB from "./configs/db.js"
 import { clerkMiddleware } from "@clerk/express";
 import clerkHooks from "./controllers/clerkHooks.js";
 import userRouter from "./routes/userRoute.js";
+import hotelRouter from "./routes/hotelRoute.js";
 
 connectDB()
 
@@ -20,8 +21,9 @@ app.use("/api/clerk", clerkHooks)
 
 app.get("/", (req, res) => res.send("API is working"))
 
-// Routes for many paths
+// Routes for APIs endpoints
 app.use("/api/user", userRouter)
+app.use("/api/hotels", hotelRouter)
 
 
 
