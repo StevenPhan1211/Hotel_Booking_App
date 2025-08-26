@@ -6,8 +6,11 @@ import { clerkMiddleware } from "@clerk/express";
 import clerkHooks from "./controllers/clerkHooks.js";
 import userRouter from "./routes/userRoute.js";
 import hotelRouter from "./routes/hotelRoute.js";
+import connectCloudinary from "./configs/cloudinary.js";
+import roomRouter from "./routes/roomRoute.js";
 
 connectDB()
+connectCloudinary()
 
 const app = express()
 app.use(cors()) // Enabe Cross-Origin Resource Sharing (CORS)
@@ -24,6 +27,7 @@ app.get("/", (req, res) => res.send("API is working"))
 // Routes for APIs endpoints
 app.use("/api/user", userRouter)
 app.use("/api/hotels", hotelRouter)
+app.use("/api/rooms", roomRouter)
 
 
 

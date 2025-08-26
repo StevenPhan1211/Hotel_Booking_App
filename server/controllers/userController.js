@@ -32,7 +32,7 @@ export const storeRecentSearchedCities = async (req, res) => {
         await user.save();
         res.json({
             success: true,
-            message: "Them thanh pho thanh cong"
+            message: "Thêm thành phố thành công"
         });
 
     } catch (error) {
