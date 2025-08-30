@@ -49,15 +49,58 @@ export const createRoom = async (req, res) => {
 
 // endpoint to get all Rooms (GET)
 export const getRooms = async (req, res) => {
+    try {
+        const rooms = await Room.find({isAvailable: true}).populate({
+            path: "hotel",
+            populate: {
+                path: "owner",
+                select: "image"
+            }
+        }).sort({ createdAt: -1 })
 
+        res.json({ success: true, rooms });
+
+    } catch (error) {
+        res.json({
+            success: false,
+            message: error.message
+        })
+    }
 }
 
-// endpoint to get all rooms for a specific hotel 6 46 09
+// endpoint to get all rooms for a specific hotel
 export const getOwnerRooms = async (req, res) => {
+    try {
+        const hotelData = await Hotel({ owner: req.auth.userId })
+        const rooms = await Room.find({ hotel: hotelData._id.toString() }).populate("hotel");
 
+        res.json({ success: true, rooms});
+
+    } catch (error) {
+        res.json({
+            success: false,
+            message: error.message
+        });
+    }
 }
 
 // endpoint to toggle availability of a room
 export const toggleRoomAvailability = async (req, res) => {
+    try {
+        const { roomId } = req.body;
+        const roomData = await Room.findById(roomId);
+        roomData.isAvailable = !roomData.isAvailable;
+        await roomData.save();
 
+        res.json({
+            success: true,
+            message: "Room availability updated"
+        });
+
+    } catch (error) {
+        res.json({
+            success: false,
+            message: error.message
+        });
+    }
 }
