@@ -1,10 +1,40 @@
-import { useState } from "react";
-import { roomsDummyData } from "../../assets/assets";
+import { useEffect, useState } from "react";
 import Title from "../../components/Title";
+import { useAppContext } from "../../context/AppContext";
+import toast from "react-hot-toast";
 
 const ListRoom = () => {
+
   // Create State variable
-  const [rooms, setRooms] = useState(roomsDummyData);
+  const [rooms, setRooms] = useState([]);
+
+  // Destructuring assignment
+  const { axios, getToken, user } = useAppContext();
+
+  // Fetch Rooms for Hotel Owner | đang dính bug không load data ra listRoom được
+  const fetchRooms = async () => {
+    try {
+      const { data } = await axios.get(
+        "/api/rooms/owner", 
+        {headers: { Authorization: `Bearer ${await getToken()}` }}
+      )
+
+      if (data.success) {
+        setRooms(data.rooms)
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  // useEffect
+  useEffect(() => {
+    if (user) {
+      fetchRooms()
+    }
+  }, [user])
 
   // return statement
   return (

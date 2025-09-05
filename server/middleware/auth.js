@@ -2,7 +2,7 @@ import User from "../models/User.js";
 
 // Middleware to check if User is authenticated
 export const protect = async (req, res, next) => {
-    const {userId} = req.auth;
+    const {userId} = req.auth(); // changed from req.auth to req.auth()
     if (!userId) {
         res.json({
             success: false, 
