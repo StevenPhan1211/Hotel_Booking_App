@@ -89,13 +89,34 @@ export const toggleRoomAvailability = async (req, res) => {
     try {
         const { roomId } = req.body;
         const roomData = await Room.findById(roomId);
-        roomData.isAvailable = !roomData.isAvailable;
-        await roomData.save();
 
+        // Toggle Room's availability - chuyển đổi trạng thái phòng true <-> false
+        roomData.isAvailable = !roomData.isAvailable;
+        await roomData.save(); // await save to database
+
+        // Tunary Operator to send different message when toggle availability
+        const message = roomData.isAvailable 
+            ? "Phòng đã được mở cho thuê" 
+            : "Phòng đã tạm ngừng cho thuê";
+        
         res.json({
             success: true,
-            message: "Room availability updated"
-        });
+            message
+        })
+
+        // Có thể dùng cách này để trả response tương ứng sau mỗi lần toggle - chuyển trạng thái
+        // if (roomData.isAvailable) {
+        //     res.json({
+        //       success: true,
+        //       message: "mở thành công",
+        //     });
+        // } else {
+        //     res.json({
+        //       success: true,
+        //       message: "đã tắt thành công",
+        //     });
+        // }
+
 
     } catch (error) {
         res.json({

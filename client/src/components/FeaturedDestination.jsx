@@ -1,20 +1,21 @@
-import { roomsDummyData } from '../assets/assets'
+import { useAppContext } from '../context/AppContext'
 import HotelCard from './HotelCard'
 import Title from './Title'
 import { useNavigate } from 'react-router-dom'
 
 const FeaturedDestination = () => {
 
-  const navigate = useNavigate()
+  const { rooms, navigate } = useAppContext();
 
-  return (
+
+  return rooms.length > 0 && (
     <div className='flex flex-col items-center px-6 md:px-16 lg:px-24 bg-slate-50 py-20'>
         <Title title='Hikari - Sang trọng - Đẳng cấp' 
         subTitle='Đến với Hikari, bạn đang đến với một không gian hiện đại giao thoa với vẻ đẹp truyền thống.
         Không chỉ là sự phục vụ tận tình, Hikari luôn đem đến cho bạn sự hài lòng cao nhất!' />
 
         <div className='flex flex-wrap items-center justify-center gap-6 mt-20'>
-            {roomsDummyData.slice(0,4).map((room, index) => (
+            {rooms.slice(0,4).map((room, index) => (
                 <HotelCard key={room._id} room={room} index={index} />
             ))}
         </div>

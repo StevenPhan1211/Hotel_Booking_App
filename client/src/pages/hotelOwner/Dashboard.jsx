@@ -1,13 +1,47 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Title from "../../components/Title";
-import { assets, dashboardDummyData } from "../../assets/assets";
+import { assets } from "../../assets/assets";
+import { useAppContext } from "../../context/AppContext";
 
 const Dashboard = () => {
+
+  // Destructuring assignment
+  const { currency, user, getToken, toast, axios } = useAppContext();
+
   // Tạo state variable
   // Dùng useState khi re-render lại component khi dữ liệu thay đổi, api thay đổi data
   // Dữ liệu tĩnh, mảng thô thì có thể gọi thẳng không cần dùng useState
-  const [dashboardData, setDashboardData] = useState(dashboardDummyData);
+  const [dashboardData, setDashboardData] = useState({
+    bookings: [],
+    totalBookings: 0,
+    totalRevenue: 0,
+  });
 
+  const fetchDashboardData = async () => {
+    try {
+      const { data } = await axios.get(
+        "/api/bookings/hotel",
+        {headers: { Authorization: `Bearer ${await getToken()}` }}
+      )
+
+      if (data.success) {
+        setDashboardData(data.dashboardData)
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  // useEffect for fetchDashboardData
+  useEffect(() => {
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user])
+
+  // Return Statement
   return (
     <div>
       <Title
@@ -42,9 +76,9 @@ const Dashboard = () => {
             className="max-sm:hidden h-10"
           />
           <div className="flex flex-col sm:ml-4 font-medium">
-            <p className="text-blue-500 text-lg">Tổng doanh thu (VNĐ)</p>
+            <p className="text-blue-500 text-lg">Tổng doanh thu (VND)</p>
             <p className="text-neutral-400 text-base">
-              {dashboardData.totalRevenue} Đồng
+              {dashboardData.totalRevenue} {currency}
             </p>
           </div>
         </div>
@@ -62,7 +96,7 @@ const Dashboard = () => {
                 <tr>
                     <th className="py-3 px-4 text-gray-800 font-medium">Tên người dùng</th>
                     <th className="py-3 px-4 text-gray-800 font-medium max-sm:hidden">Tên phòng</th>
-                    <th className="py-3 px-4 text-gray-800 font-medium text-center">Tổng doanh thu (VNĐ)</th>
+                    <th className="py-3 px-4 text-gray-800 font-medium text-center">Tổng doanh thu (VND)</th>
                     <th className="py-3 px-4 text-gray-800 font-medium text-center">Tình trạng</th>
                 </tr>
             </thead>
@@ -79,7 +113,7 @@ const Dashboard = () => {
                         </td>
 
                         <td className="py-3 px-4 text-gray-700 border-t border-gray-300 text-center">
-                            {item.totalPrice}
+                            {item.totalPrice} {currency}
                         </td>
 
                         <td className="py-3 px-4 border-t border-gray-300 flex">

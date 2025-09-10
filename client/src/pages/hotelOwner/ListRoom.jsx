@@ -9,11 +9,13 @@ const ListRoom = () => {
   const [rooms, setRooms] = useState([]);
 
   // Destructuring assignment
-  const { axios, getToken, user } = useAppContext();
+  const { axios, currency, getToken, user } = useAppContext();
 
-  // Fetch Rooms for Hotel Owner | đang dính bug không load data ra listRoom được
+  // Fetch Rooms for Hotel Owner
   const fetchRooms = async () => {
     try {
+      // Destructuring Assignment
+      // Cú pháp cho phép bóc tách các thuộc tính từ object/array thành các biến riêng biệt, const { data }
       const { data } = await axios.get(
         "/api/rooms/owner", 
         {headers: { Authorization: `Bearer ${await getToken()}` }}
@@ -26,6 +28,22 @@ const ListRoom = () => {
       }
     } catch (error) {
       toast.error(error.message)
+    }
+  }
+
+  // Toggle Availability of the room
+  const toggleAvailability = async (roomId) => {
+    const { data } = await axios.post(
+      "/api/rooms/toggle-availability",
+      { roomId },
+      {headers: { Authorization: `Bearer ${await getToken()}` }}
+    )
+
+    if (data.success) {
+      toast.success(data.message)
+      fetchRooms()
+    } else {
+      toast.error(data.message)
     }
   }
 
@@ -48,8 +66,8 @@ const ListRoom = () => {
       <p className="text-gray-500 mt-8">Danh sách phòng đã đăng ký cho thuê</p>
 
       {/* Table List Room */}
-      <div className="w-full max-w-3xl text-left border border-gray-300 rounded-lg max-h-80 overflow-y-scroll mt-3">
-        <table className="w-full">
+      <div className="w-full max-w-4xl text-left border border-gray-300 rounded-lg max-h-80 overflow-y-scroll mt-3">
+        <table className="w-full table-fixed">
           {/* Table Head */}
           <thead className="bg-gray-50">
             <tr>
@@ -57,9 +75,9 @@ const ListRoom = () => {
                 Tên phòng
               </th>
               <th className="py-3 px-4 text-gray-800 font-medium max-sm:hidden">
-                Loại phòng
+                Các tiện ích
               </th>
-              <th className="py-3 px-4 text-gray-800 font-medium">
+              <th className="py-3 px-4 text-gray-800 font-medium text-center">
                 Giá thuê / Đêm
               </th>
               <th className="py-3 px-4 text-gray-800 font-medium text-center">
@@ -83,13 +101,14 @@ const ListRoom = () => {
                   </td>
 
                   <td className="py-3 px-4 text-gray-700 border-t border-gray-300 text-center">
-                    {item.pricePerNight}
+                    {item.pricePerNight} {currency}
                   </td>
 
                   {/* Custom Button */}
                   <td className="py-3 px-4 text-red-500 border-t border-gray-300 text-sm text-center">
                     <label className="relative inline-flex items-center cursor-pointer text-gray-900 gap-3">
                       <input 
+                        onChange={() => toggleAvailability(item._id)}
                         type="checkbox" 
                         className="sr-only peer"
                         checked={item.isAvailable}

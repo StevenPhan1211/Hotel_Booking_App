@@ -1,7 +1,8 @@
-import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { assets, facilityIcons, roomsDummyData } from "../assets/assets";
 import StarRating from "../components/StarRating";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useAppContext } from "../context/AppContext";
 
 // component CheckBox
 const CheckBox = ({label, selected = false, onChange = () => {}}) => {
@@ -24,11 +25,20 @@ const RadioButton = ({label, selected = false, onChange = () => {}}) => {
 }
 
 const AllRooms = () => {
-  const navigate = useNavigate();
+
+  const [searchParams, setSearchParams] = useSearchParams()
+  // call API data from useAppContext()
+  const { rooms, navigate, currency } = useAppContext();
+  
   // tạo hàm dùng useState bằng: const [giá trị hiện tại, hàm thay đổi(set function)] = useState()
   // useState() có thể truyền các giá trị trong JS như boolean, string, number, array, object
   // Khởi tạo state openFilters với giá trị ban đầu là false (đang ẩn Bộ lọc)
   const [openFilters, setOpenFilters] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState({
+    roomType: [],
+    priceRange: [],
+  });
+  const [selectedSort, setSelectedSort] = useState("");
 
   const roomTypes = [
     "Giường đơn",
@@ -47,9 +57,81 @@ const AllRooms = () => {
   const sortOptions = [
     "Giá tiền từ thấp đến cao",
     "Giá tiền từ cao đến thấp",
-    "Mới nhất",
+    "Mới đăng gần đây",
   ];
 
+  // Handle changes for filters and sorting 9 05 00
+  const handleFilterChange = (checked, value, type) => {
+    setSelectedFilters((prevFilters) => {
+      const updatedFilters = {...prevFilters};
+
+      if (checked) {
+        updatedFilters[type].push(value)
+      } else {
+        updatedFilters[type] = updatedFilters[type].filter(item => item !== value)
+      }
+
+      return updatedFilters;
+    })
+  }
+
+  const handleSortChange = (sortOption) => {
+    setSelectedSort(sortOption);
+  }
+
+  // Function to check if a room matches the selected Room types
+  const matchesRoomType = (room) => {
+    return selectedFilters.roomType.length === 0 || selectedFilters.roomType.includes(room.roomType);
+  }
+
+  // Function to check if a room matches the selected price ranges
+  const matchesPriceRange = (room) => {
+    return selectedFilters.priceRange.length === 0 || selectedFilters.priceRange.some(range => {
+      const [min, max] = range.split(" to ").map(Number);
+      return room.pricePerNight >= min && room.pricePerNight <= max;
+    })
+  }
+
+  // Function to sort rooms based on the selected sort option
+  const sortRooms = (a, b) => {
+    if (selectedSort === "Giá tiền từ thấp đến cao") {
+      return a.pricePerNight - b.pricePerNight;
+    }
+
+    if (selectedSort === "Giá tiền từ cao đến thấp") {
+      return b.pricePerNight - a.pricePerNight;
+    }
+
+    if (selectedSort === "Mới đăng gần đây") {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    }
+
+    return 0;
+  }
+
+  // Filter Destination
+  const filterDestination = (room) => {
+    const destination = searchParams.get("destination");
+    if (!destination) return true;
+    return room.hotel.city.toLowerCase().includes(destination.toLowerCase())
+  }
+
+  // Hàm lọc danh sách phòng dựa vào những gì user chọn trong Bộ lọc
+  const filteredRooms = useMemo(() => {
+    return rooms.filter(room => matchesRoomType(room) && matchesPriceRange(room) && filterDestination(room)).sort(sortRooms);
+  }, [rooms, selectedFilters, selectedSort, searchParams])
+
+  // Function to clear all filters
+  const clearFilters = () => {
+    setSelectedFilters({
+      roomType: [],
+      priceRange: []
+    });
+    setSelectedSort("");
+    setSearchParams({});
+  }
+
+  // Return statement
   return (
     <div className="flex flex-col-reverse lg:flex-row items-start justify-between
     pt-28 md:pt-35 px-4 md:px-16 lg:px-24 xl:px-32">
@@ -64,8 +146,8 @@ const AllRooms = () => {
             </p>
         </div>
 
-        {/* arrow function lấy ds phòng */}
-        {roomsDummyData.map((room) => (
+        {/* map method lấy ds phòng */}
+        {filteredRooms.map((room) => (
             <div key={room._id} className="flex flex-col md:flex-row items-start py-10 gap-6 border-b border-gray-300 
             last:pb-30 last:border-0">
                 {/* Nhóm con bên trái lấy hình khách sạn */}
@@ -135,7 +217,12 @@ const AllRooms = () => {
           <div className="px-5 pt-5">
             <p className="font-medium text-gray-800 pb-2">Chọn loại phòng</p>
             {roomTypes.map((room, index) => (
-              <CheckBox key={index} label={room} />
+              <CheckBox 
+                key={index} 
+                label={room} 
+                selected={selectedFilters.roomType.includes(room)}
+                onChange={(checked) => handleFilterChange(checked, room, "roomType")}
+              />
             ))}
           </div>
 
@@ -143,7 +230,12 @@ const AllRooms = () => {
           <div className="px-5 pt-5">
             <p className="font-medium text-gray-800 pb-2">Mức giá</p>
             {priceRanges.map((range, index) => (
-              <CheckBox key={index} label={`${range} VNĐ`} />
+              <CheckBox 
+                key={index} 
+                label={`${range} ${currency}`} 
+                selected={selectedFilters.priceRange.includes(range)}
+                onChange={(checked) => handleFilterChange(checked, range, "priceRange")}
+              />
             ))}
           </div>
 
@@ -151,7 +243,12 @@ const AllRooms = () => {
           <div className="px-5 pt-5 pb-7">
             <p className="font-medium text-gray-800 pb-2">Sắp xếp</p>
             {sortOptions.map((option, index) => (
-              <RadioButton key={index} label={option} />
+              <RadioButton 
+                key={index} 
+                label={option} 
+                selected={selectedSort === option}
+                onChange={() => handleSortChange(option)}
+              />
             ))}
           </div>
         </div>
