@@ -9,7 +9,7 @@ const ListRoom = () => {
   const [rooms, setRooms] = useState([]);
 
   // Destructuring assignment
-  const { axios, currency, getToken, user } = useAppContext();
+  const { axios, currency, getToken, user, formatPrice } = useAppContext();
 
   // Fetch Rooms for Hotel Owner
   const fetchRooms = async () => {
@@ -101,7 +101,7 @@ const ListRoom = () => {
                   </td>
 
                   <td className="py-3 px-4 text-gray-700 border-t border-gray-300 text-center">
-                    {item.pricePerNight} {currency}
+                    {formatPrice(item.pricePerNight)} {currency}
                   </td>
 
                   {/* Custom Button */}

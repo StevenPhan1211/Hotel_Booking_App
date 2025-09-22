@@ -28,7 +28,7 @@ const AllRooms = () => {
 
   const [searchParams, setSearchParams] = useSearchParams()
   // call API data from useAppContext()
-  const { rooms, navigate, currency } = useAppContext();
+  const { rooms, navigate, currency, formatPrice } = useAppContext();
   
   // tạo hàm dùng useState bằng: const [giá trị hiện tại, hàm thay đổi(set function)] = useState()
   // useState() có thể truyền các giá trị trong JS như boolean, string, number, array, object
@@ -48,10 +48,10 @@ const AllRooms = () => {
   ];
 
   const priceRanges = [
-    '0 đến 1.000.000',
-    '1.000.000 đến 2.000.000',
-    '2.000.000 đến 4.000.000',
-    'Trên 4.000.000',
+    { label: '0 đến 1.000.000', min: 0, max: 1000000 },
+    { label: '1.000.000 đến 2.000.000', min: 1000000, max: 2000000 },
+    { label: '2.000.000 đến 4.000.000', min: 2000000, max: 4000000 },
+    { label: 'Trên 4.000.000', min: 4000000, max: Infinity },
   ];
 
   const sortOptions = [
@@ -60,7 +60,7 @@ const AllRooms = () => {
     "Mới đăng gần đây",
   ];
 
-  // Handle changes for filters and sorting 9 05 00
+  // Handle changes for filters and sorting - 9 05 00
   const handleFilterChange = (checked, value, type) => {
     setSelectedFilters((prevFilters) => {
       const updatedFilters = {...prevFilters};
@@ -86,11 +86,17 @@ const AllRooms = () => {
 
   // Function to check if a room matches the selected price ranges
   const matchesPriceRange = (room) => {
-    return selectedFilters.priceRange.length === 0 || selectedFilters.priceRange.some(range => {
-      const [min, max] = range.split(" to ").map(Number);
-      return room.pricePerNight >= min && room.pricePerNight <= max;
-    })
-  }
+    if (selectedFilters.priceRange.length === 0) {
+      return true;
+    }
+
+    return selectedFilters.priceRange.some(rangeLabel => {
+      const range = priceRanges.find(r => r.label === rangeLabel);
+      if (!range) return false;
+      
+      return room.pricePerNight >= range.min && room.pricePerNight <= range.max;
+    });
+  };
 
   // Function to sort rooms based on the selected sort option
   const sortRooms = (a, b) => {
@@ -185,7 +191,7 @@ const AllRooms = () => {
                     </div>
 
                     {/* Giá thuê phòng */}
-                    <p className="text-xl font-medium text-gray-700">{room.pricePerNight} VNĐ/Đêm</p>
+                    <p className="text-xl font-medium text-gray-700">{formatPrice(room.pricePerNight)} VNĐ/Đêm</p>
                 </div>
             </div>
         ))}
@@ -232,9 +238,9 @@ const AllRooms = () => {
             {priceRanges.map((range, index) => (
               <CheckBox 
                 key={index} 
-                label={`${range} ${currency}`} 
-                selected={selectedFilters.priceRange.includes(range)}
-                onChange={(checked) => handleFilterChange(checked, range, "priceRange")}
+                label={`${range.label} ${currency}`} 
+                selected={selectedFilters.priceRange.includes(range.label)}
+                onChange={(checked) => handleFilterChange(checked, range.label, "priceRange")}
               />
             ))}
           </div>

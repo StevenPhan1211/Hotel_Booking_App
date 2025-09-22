@@ -57,6 +57,11 @@ export const AppProvider = ({ children }) => {
         }
     }
 
+    // Function to format number from pricePerNight to VND currency (1000000 --> 1.000.000 VND)
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('vi-VN').format(price);
+    }
+
     // Execute fetchUser function by using useEffect
     useEffect(() => {
         if (user) {
@@ -80,6 +85,7 @@ export const AppProvider = ({ children }) => {
         showHotelReg, setShowHotelReg,
         searchedCities, setSearchedCities,
         rooms, setRooms,
+        formatPrice,
     }
 
     return (
